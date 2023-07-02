@@ -17,7 +17,6 @@ def transcribe_and_store_audio(audio_url):
         tmp_audio_file.write(response.content)
         tmp_audio_file.flush()
 
-        # 1. Transcribe with original whisper (batched)
         model = whisperx.load_model("large-v2", device, compute_type=compute_type)
 
         audio = whisperx.load_audio(tmp_audio_file.name)
@@ -28,7 +27,6 @@ def transcribe_and_store_audio(audio_url):
         print(result["segments"]) # after alignment
 
 
-    # 3. Assign speaker labels
         diarize_model = whisperx.DiarizationPipeline(use_auth_token='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', device=device)
 
         # add min/max number of speakers if known

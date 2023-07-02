@@ -24,7 +24,7 @@ def create_podcast_sensor_and_task(podcast_name, dag):
 
     transcribe_task = PythonOperator(
         task_id=f"transcribe_podcast_{rss_feed_url}",
-        python_callable=transcribe_and_store_audio(rss_feed_url),
+        python_callable=transcribe_and_store_audio,
         op_args=[_get_new_episode_url_from_sensor],
         provide_context=True,
         dag=dag,
@@ -37,7 +37,7 @@ def create_podcast_sensor_and_task(podcast_name, dag):
 def create_episode_transcription_task(episode_url: str, dag):
     task = PythonOperator(
         task_id=f"transcribe_episode_{episode_url}",
-        python_callable=transcribe_and_store_audio(episode_url),
+        python_callable=transcribe_and_store_audio,
         op_args=[episode_url],
         dag=dag,
     )

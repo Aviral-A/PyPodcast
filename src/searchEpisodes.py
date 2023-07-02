@@ -2,12 +2,8 @@ from typing import List, Dict
 import requests
 from lxml import etree as ElementTree
 import spacy
-from spacy.matcher import PhraseMatcher
-from spaczz.matcher import SimilarityMatcher, FuzzyMatcher
-from .matching import BaseMatcher, ExactMatcher, SimMatcher, FuzzMatcher
+from .matching import load_key_phrase_matcher
 from .lookup_podcast import tokenize_and_remove_stop_words, clean_title, spacy_similarity
-
-
 
 class SearchResult:
     def __init__(self, title, url, score):
@@ -18,7 +14,6 @@ class SearchResult:
     def __lt__(self, other):
         return self.score > other.score
 
-
 def search_episodes_by_title(rss_feed_url: str, search_title: str, max_results: int = 10):
     response = requests.get(rss_feed_url)
     root = ElementTree.fromstring(response.content)
@@ -26,14 +21,10 @@ def search_episodes_by_title(rss_feed_url: str, search_title: str, max_results: 
 
     search_title_tokens = tokenize_and_remove_stop_words(search_title, nlp)
 
-    exact_matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
-    exact_matcher.add("SEARCH", [nlp(search_title.lower())])
-
-    fuzzy_matcher = FuzzyMatcher(nlp.vocab, min_r1=80, min_r2=90)
-    fuzzy_matcher.add("SEARCH", [nlp(search_title)])
-
-    sim_matcher = SimilarityMatcher(nlp.vocab, min_r1=80, min_r2=90)
-    sim_matcher.add("SEARCH", [nlp(search_title)])
+    key_phrases = {"SEARCH": [search_title.lower()]}
+    exact_matcher = load_key_phrase_matcher(nlp, key_phrases, "exact")
+    fuzzy_matcher = load_key_phrase_matcher(nlp, key_phrases, "fuzzy")
+    similarity_matcher = load_key_phrase_matcher(nlp, key_phrases, "similarity")
 
     results = []
     for item in root.iter("item"):
@@ -42,9 +33,10 @@ def search_episodes_by_title(rss_feed_url: str, search_title: str, max_results: 
         cleaned_title_tokens = tokenize_and_remove_stop_words(cleaned_title, nlp)
 
         doc = nlp(cleaned_title.lower())
-        exact_matches = exact_matcher(doc)
-        fuzzy_matches = fuzzy_matcher(doc)
-        similarity_matches = sim_matcher(doc)
+
+        exact_matches = exact_matcher.matcher(doc)
+        fuzzy_matches = fuzzy_matcher.matcher(doc)
+        similarity_matches = similarity_matcher.matcher(doc)
 
         if exact_matches:
             score = 1.0

@@ -1,16 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import feedparser
 import undetected_chromedriver as uc
-import requests
-import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
-import re
 from typing import List
-from xml.etree import ElementTree
 
 def format_podcast_name(podcast_name):
     formatted_name = podcast_name.lower().replace(" ", "-").replace(",", "").replace(".", "").replace(":", "")

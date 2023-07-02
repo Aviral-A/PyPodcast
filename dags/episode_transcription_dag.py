@@ -1,13 +1,7 @@
 from datetime import timedelta
 from airflow import DAG
-from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from operators.search_and_create_sensors import create_episode_transcription_task
-
-def run_episode_transcription_dag(**context):
-    episode_url = context["dag_run"].conf["episode_url"]
-    task = create_episode_transcription_task(episode_url, context["dag"])
-    context["dag"].add_task(task)
 
 dag = DAG(
     "episode_transcription",
@@ -22,9 +16,5 @@ dag = DAG(
     catchup=False,
 )
 
-run_episode_transcription_task = PythonOperator(
-    task_id='run_episode_transcription',
-    python_callable=run_episode_transcription_dag,
-    provide_context=True,
-    dag=dag,
-)
+episode_url = "{{ dag_run.conf['episode_url'] }}"
+transcribe_episode_task = create_episode_transcription_task(episode_url, dag)
